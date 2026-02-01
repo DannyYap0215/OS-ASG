@@ -15,6 +15,16 @@ typedef struct {
     int game_over;                     // 0=Running, 1=Win, 2=Draw
     int winner;                        // ID of the winner (0 if none)
     int turn_count;                    // Total moves made (for Draw check)
+    int player_scores[MAX_PLAYERS];
+    int active_players[MAX_PLAYERS];
+
+    char log_buffer[50][128];  
+    int log_head;  // Where the Logger reads from
+    int log_tail;  // Where the Players write to
+    
+    // Mutex specifically for the log (separate from board to avoid lag)
+    pthread_mutex_t log_mutex; 
+    pthread_cond_t log_cond;
 
     // Synchronization Primitives (REQUIRED by Assignment)
     pthread_mutex_t board_mutex;       // Protects board access
