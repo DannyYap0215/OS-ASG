@@ -12,7 +12,7 @@
 // Global socket variable so the thread can access it
 int sock = 0;
 
-// --- The Receiver Thread ---
+// The Receiver Thread 
 // This runs in the background. It listens for messages from the Server
 // and prints them to your screen immediately.
 void *receive_message(void *socket_desc) {

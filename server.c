@@ -18,7 +18,7 @@
 // Global Pointer to Shared Memory
 SharedGameState *game_state;
 
-// --- Persistence: Load Scores ---
+// Persistence: Load Scores 
 void load_scores() {
     FILE *fp = fopen("scores.txt", "r");
     if (fp) {
@@ -34,7 +34,7 @@ void load_scores() {
     }
 }
 
-// --- Persistence: Save Scores ---
+// Persistence: Save Scores 
 void save_scores() {
     FILE *fp = fopen("scores.txt", "w");
     if (!fp) {
@@ -50,7 +50,7 @@ void save_scores() {
     printf("[Server] Scores saved to scores.txt\n");
 }
 
-// --- Initialization ---
+// Initialization 
 void setup_shared_memory() {
     game_state = mmap(NULL, sizeof(SharedGameState), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     if (game_state == MAP_FAILED) { perror("mmap failed"); exit(1); }
@@ -87,7 +87,7 @@ void setup_shared_memory() {
     printf("[Server] Shared memory initialized.\n");
 }
 
-// --- Cleanup ---
+// Cleanup 
 void handle_shutdown(int sig) {
     printf("\n[Server] Shutting down...\n");
     save_scores(); // Save persistence
@@ -99,18 +99,14 @@ void handle_shutdown(int sig) {
     exit(0);
 }
 
-// --- Advanced Zombie Reaper (With Visual Proof) ---
+// Zombie Reaper 
 void handle_sigchld(int sig) {
-    int saved_errno = errno; // Good practice to save errno in signal handlers
+    int saved_errno = errno; 
     pid_t pid;
     
     // Reap all dead children
     while ((pid = waitpid(-1, NULL, WNOHANG)) > 0) {
         printf("\n[Server] Child Process %d terminated and reaped successfully.\n", pid);
-        
-        // --- VISUAL PROOF ---
-        // This runs the Linux 'ps' command to show the lecturer 
-        // that the process is GONE and no <defunct> zombies exist.
         printf("[Server] Current Process List (Checking for Zombies...):\n");
         printf("---------------------------------------------------\n");
         system("ps -f -C server"); 
@@ -120,7 +116,7 @@ void handle_sigchld(int sig) {
     errno = saved_errno;
 }
 
-// --- Logger Thread ---
+// Logger Thread 
 void *logger_thread(void *arg) {
     FILE *fp = fopen("game.log", "a");
     if (!fp) pthread_exit(NULL);
@@ -149,7 +145,7 @@ void log_event(char *message) {
     pthread_mutex_unlock(&game_state->log_mutex);
 }
 
-// --- Game Logic ---
+// Game Logic 
 int check_win(int player_id) {
     for (int i = 0; i < BOARD_SIZE; i++) {
         for (int j = 0; j <= BOARD_SIZE - WIN_COUNT; j++) {
@@ -184,7 +180,7 @@ void serialize_board(char *buffer) {
     strcat(buffer, "------------------\n");
 }
 
-// --- Client Worker: Handles Game Logic for One Player ---
+// Client Worker: Handles Game Logic for One Player 
 void handle_client(int client_socket, int player_id) {
     char buffer[1024];
     char board_view[1024];
@@ -193,7 +189,7 @@ void handle_client(int client_socket, int player_id) {
     printf("[Player %d] Process started (PID %d)\n", player_id, getpid());
 
     while (1) {
-        // --- 1. CHECK GAME OVER ---
+        // 1. CHECK GAME OVER 
         if (game_state->game_over) {
             if (game_state->winner == player_id) 
                 dprintf(client_socket, "GAME OVER: You Won! Total Wins: %d\n", game_state->player_scores[player_id]);
@@ -202,14 +198,14 @@ void handle_client(int client_socket, int player_id) {
             break; // Exit loop to close connection
         }
 
-        // --- 2. CHECK TURN ---
+        // 2. CHECK TURN 
         if (game_state->current_player_turn != player_id) { 
             // Save CPU by sleeping while waiting
             sleep(1); 
             continue; 
         }
 
-        // --- 3. IT IS MY TURN ---
+        // 3. IT IS MY TURN 
         // A. Send the Board View
         serialize_board(board_view);
         dprintf(client_socket, "%s\nYOUR TURN! Enter 'ROW COL' (e.g. 1 2) or 'exit': ", board_view);
@@ -235,7 +231,7 @@ void handle_client(int client_socket, int player_id) {
             continue;
         }
 
-        // --- 4. CRITICAL SECTION (Updating Shared Memory) ---
+        // 4. CRITICAL SECTION (Updating Shared Memory) 
         pthread_mutex_lock(&game_state->board_mutex);
 
         // Validation: Bounds check and Occupied check
@@ -262,7 +258,7 @@ void handle_client(int client_socket, int player_id) {
             log_event("Game Over. Winner found.");
         }
 
-        // --- SMART TURN SKIPPING ---
+        // TURN SKIPPING 
         // This loop finds the next active player, skipping anyone who quit.
         int next_player = game_state->current_player_turn;
         do {
@@ -271,10 +267,9 @@ void handle_client(int client_socket, int player_id) {
         } while (game_state->active_players[next_player] == 0 && next_player != player_id);
 
         game_state->current_player_turn = next_player;
-        // ---------------------------
 
         pthread_mutex_unlock(&game_state->board_mutex);
-        // --- END CRITICAL SECTION ---
+        // END CRITICAL SECTION 
         
         dprintf(client_socket, "Move accepted. Waiting for other players...\n");
     }
@@ -310,7 +305,7 @@ DISCONNECT:
     exit(0);
 }
 
-// --- Scheduler ---
+// Scheduler 
 void *scheduler_thread(void *arg) {
     int last_turn = 0;
     while (1) {
@@ -323,7 +318,7 @@ void *scheduler_thread(void *arg) {
     return NULL;
 }
 
-// --- Main ---
+// Main 
 int main() {
     signal(SIGINT, handle_shutdown); 
     signal(SIGCHLD, handle_sigchld); // REAPER

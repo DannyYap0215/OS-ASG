@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "game.h"
 
-// --- Helper: Check boundaries ---
+// Helper: Check boundaries 
 int is_valid_move(SharedGameState *game, int row, int col) {
     if (game->game_over) return 0;
     if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE) return 0; // Out of bounds
@@ -10,7 +10,7 @@ int is_valid_move(SharedGameState *game, int row, int col) {
     return 1;
 }
 
-// --- Helper: Check if a specific player has won ---
+// Helper: Check if a specific player has won 
 int check_win(SharedGameState *game, int player_id) {
     int count;
 
@@ -66,7 +66,7 @@ int check_win(SharedGameState *game, int player_id) {
     return 0;
 }
 
-// --- Main Action: Make a Move ---
+// Main Action: Make a Move 
 // Returns: 1 if move successful, 0 if invalid
 int make_move(SharedGameState *game, int player_id, int row, int col) {
     if (!is_valid_move(game, row, col)) return 0;
@@ -88,7 +88,7 @@ int make_move(SharedGameState *game, int player_id, int row, int col) {
     return 1;
 }
 
-// --- Debug: Print Board to Console ---
+// Debug: Print Board to Console 
 void print_board(SharedGameState *game) {
     printf("\n Current Board:\n");
     printf("   0 1 2 3 4\n");
@@ -98,9 +98,9 @@ void print_board(SharedGameState *game) {
             char symbol = '.';
             if (game->board[r][c] == 1) symbol = 'X';
             else if (game->board[r][c] == 2) symbol = 'O';
-            else if (game->board[r][c] == 3) symbol = 'T'; // Triangle?
-            else if (game->board[r][c] == 4) symbol = 'S'; // Square?
-            else if (game->board[r][c] == 5) symbol = 'P'; // Pentagon?
+            else if (game->board[r][c] == 3) symbol = 'T'; 
+            else if (game->board[r][c] == 4) symbol = 'S'; 
+            else if (game->board[r][c] == 5) symbol = 'P'; 
             printf("%c|", symbol);
         }
         printf("\n");
