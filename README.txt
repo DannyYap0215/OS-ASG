@@ -67,4 +67,4 @@ To prove that the server correctly cleans up dead processes (Zombies):
 * Players: Supports 3 to 5 simultaneous players.
 * Winning Condition: The first player to get 4 consecutive pieces in a row 
   (Horizontal or Vertical).
-* Draw Condition: If the board fills up (25 moves) with no winner.
+* Draw Condition: If the board fills up (25 moves) with no winner
