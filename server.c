@@ -191,11 +191,15 @@ void handle_client(int client_socket, int player_id) {
     while (1) {
         // 1. CHECK GAME OVER 
         if (game_state->game_over) {
-            if (game_state->winner == player_id) 
+            if (game_state->winner == player_id) {
                 dprintf(client_socket, "GAME OVER: You Won! Total Wins: %d\n", game_state->player_scores[player_id]);
-            else 
+            } else if (game_state->winner == 0) {
+                // Explicitly handle the draw message
+                dprintf(client_socket, "GAME OVER: It's a DRAW! The board is full.\n");
+            } else {
                 dprintf(client_socket, "GAME OVER: Player %d Won.\n", game_state->winner);
-            break; // Exit loop to close connection
+            }
+            break; 
         }
 
         // 2. CHECK TURN 
@@ -251,18 +255,18 @@ void handle_client(int client_socket, int player_id) {
         log_event(log_msg);
         
         // Check Win Condition
-        f (check_win(player_id)) {
-        game_state->game_over = 1;
-        game_state->winner = player_id;
-        game_state->player_scores[player_id]++; 
-        log_event("Game Over. Winner found.");
-    } 
-    else if (game_state->turn_count >= (BOARD_SIZE * BOARD_SIZE)) {
-        // No winner, but board is full (25 moves for 5x5)
-        game_state->game_over = 1;
-        game_state->winner = 0; // 0 indicates a Draw
-        log_event("Game Over. It's a DRAW.");
-    }
+        if (check_win(player_id)) {
+            game_state->game_over = 1;
+            game_state->winner = player_id;
+            game_state->player_scores[player_id]++; 
+            log_event("Game Over. Winner found.");
+        } else if (game_state->turn_count >= (BOARD_SIZE * BOARD_SIZE)) {
+            // No winner, but board is full (25 moves for 5x5)
+            game_state->game_over = 1;
+            game_state->winner = 0; // 0 indicates a Draw
+            log_event("Game Over. It's a DRAW.");
+        }
+        
 
         // TURN SKIPPING 
         // This loop finds the next active player, skipping anyone who quit.
