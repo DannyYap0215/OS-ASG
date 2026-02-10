@@ -149,14 +149,36 @@ void log_event(char *message) {
 int check_win(int player_id) {
     for (int i = 0; i < BOARD_SIZE; i++) {
         for (int j = 0; j <= BOARD_SIZE - WIN_COUNT; j++) {
+            // 1. Horizontal Check
             int count = 0;
             for (int k = 0; k < WIN_COUNT; k++) 
                 if (game_state->board[i][j+k] == player_id) count++;
             if (count == WIN_COUNT) return 1;
 
+            // 2. Vertical Check
             count = 0;
             for (int k = 0; k < WIN_COUNT; k++) 
                 if (game_state->board[j+k][i] == player_id) count++;
+            if (count == WIN_COUNT) return 1;
+        }
+    }
+
+    // 3. Diagonal Check (Top-Left to Bottom-Right)
+    for (int i = 0; i <= BOARD_SIZE - WIN_COUNT; i++) {
+        for (int j = 0; j <= BOARD_SIZE - WIN_COUNT; j++) {
+            int count = 0;
+            for (int k = 0; k < WIN_COUNT; k++)
+                if (game_state->board[i+k][j+k] == player_id) count++;
+            if (count == WIN_COUNT) return 1;
+        }
+    }
+
+    // 4. Anti-Diagonal Check (Top-Right to Bottom-Left)
+    for (int i = 0; i <= BOARD_SIZE - WIN_COUNT; i++) {
+        for (int j = WIN_COUNT - 1; j < BOARD_SIZE; j++) {
+            int count = 0;
+            for (int k = 0; k < WIN_COUNT; k++)
+                if (game_state->board[i+k][j-k] == player_id) count++;
             if (count == WIN_COUNT) return 1;
         }
     }
