@@ -379,11 +379,18 @@ int main() {
 
     while ((client_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) >= 0) {
         pthread_mutex_lock(&game_state->board_mutex);
+
+        if (game_state->player_count >= MAX_PLAYERS) {
+            printf("[Server] Connection rejected. Server full.\n");
+            dprintf(client_socket, "Server is full! Try again later.\n");
+            close(client_socket);
+            pthread_mutex_unlock(&game_state->board_mutex);
+            continue; // Skip the fork and wait for the next attempt
+        }
+
         int current_id = ++game_state->player_count; 
         game_state->active_players[current_id] = 1;
         pthread_mutex_unlock(&game_state->board_mutex);
-
-        printf("[Server] Player %d connected.\n", current_id);
 
         if (fork() == 0) {
             close(server_fd); 
